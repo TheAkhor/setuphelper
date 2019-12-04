@@ -22,6 +22,7 @@ type (
 
 	DatabaseModel interface {
 		SetID(id primitive.ObjectID)
+		GetID() string
 		//SetID(id string)
 	}
 )
@@ -75,50 +76,88 @@ func (d *Database) SetDatabaseName(databaseName string) {
 
 // SetDatabase - Set the database name to be used when getting collections
 //func (d *Database) Insert(collectionName string, model interface{}) {
-func (d *Database) Insert(collectionName string, model DatabaseModel) {
+func (d *Database) Insert(collectionName string, model DatabaseModel) error {
 	collection := d.GetCollection(collectionName)
 
-	//model.CreationTime.UpdateTimes()
-	//SetTImes(model)
+	id := primitive.NewObjectID()
+	PrintDebug("Primitive", id)
+	model.SetID(id)
 
 	insertResult, err := collection.InsertOne(context.TODO(), model)
 	if err != nil {
 		log.Fatal(err)
+		return err
 	}
 
 	PrintDebug("Inserted a single document: ", insertResult.InsertedID, insertResult.InsertedID)
 	//model.SetID(insertResult.InsertedID)
 	//model.SetID(fmt.Sprintf("%v", insertResult.InsertedID))
 
-	test := insertResult.InsertedID.(primitive.ObjectID)
-	PrintDebug("Object ID TEST", test.String(), test.Hex())
+	//test := insertResult.InsertedID.(primitive.ObjectID)
+	//PrintDebug("Object ID TEST: ", collectionName, test.Hex())
 
 	// On the model "interface" we need to type assert the response
 	// This will send a primitive.ObjectID back to SetID.
-	model.SetID(insertResult.InsertedID.(primitive.ObjectID))
+	//model.SetID(insertResult.InsertedID.(primitive.ObjectID))
 
 	//model.SetID(insertResult.InsertedID))
 	//return insertResult, err
-
+	return err
+	//return nil
 }
 
 // FindOne - find one result via the filter
+// result is a pointer to the model we need to decode into
 func (d *Database) FindOne(collectionName string, filter bson.M, result interface{}) error {
 	collection := d.GetCollection(collectionName)
 
-	// Create an empty interface to store the results of the Decode
-	// Then in the model use "type assert" to load the data
+	// Try and find the result and decode into the model pointer variable passed
 	err := collection.FindOne(context.TODO(), filter).Decode(result)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	// if err != nil {
+	// 	log.Panic(err)
+	// }
 
 	PrintDebug("Database Find One: ", result, err)
 
 	return err
 }
 
-// func SetTimes(m models.UpdateModelTimes) {
-// 	m.UpdateTimes()
-// }
+// SetDatabase - Set the database name to be used when getting collections
+//func (d *Database) Insert(collectionName string, model interface{}) {
+func (d *Database) FindOneAndUpdate(collectionName string, filter bson.M, update interface{}) *mongo.SingleResult {
+	collection := d.GetCollection(collectionName)
+
+	//model.CreationTime.UpdateTimes()
+	//SetTImes(model)
+	//id := model.GetID()
+
+	options := &options.FindOneAndUpdateOptions{}
+	options.SetUpsert(true)
+
+	result := collection.FindOneAndUpdate(context.TODO(), filter, update, options)
+
+	// options := &options.FindOneAndUpdateOptions{}
+	// options.SetUpsert(true)
+
+	// result := collection.FindOneAndUpdate(context.TODO(), filter, model, options)
+	//insertResult, err := collection.FindOneAndUpdate(context.TODO(), filter, model, options)
+
+	return result
+}
+
+func (d *Database) FindOneAndReplace(collectionName string, filter bson.M, update interface{}) *mongo.SingleResult {
+	collection := d.GetCollection(collectionName)
+
+	result := collection.FindOneAndReplace(context.TODO(), filter, update)
+
+	//PrintDebug(result, result.Err())
+	PrintDebug("ERROR", result.Err())
+	// options := &options.FindOneAndUpdateOptions{}
+	// options.SetUpsert(true)
+
+	// result := collection.FindOneAndUpdate(context.TODO(), filter, model, options)
+	//insertResult, err := collection.FindOneAndUpdate(context.TODO(), filter, model, options)
+
+	return result
+}

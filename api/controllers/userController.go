@@ -9,7 +9,6 @@ import (
 	"setuphelper/api/utilities"
 
 	"github.com/labstack/echo"
-
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	//"github.com/labstack/echo/middleware"
 )
@@ -74,10 +73,10 @@ func CreateUser(c echo.Context) error {
 func GetUser(c echo.Context) error {
 
 	id, _ := primitive.ObjectIDFromHex(c.Param("id"))
-	utilities.PrintDebug("GetUser", id)
 
 	userModel, err := models.GetUser(id)
 
+	utilities.PrintDebug("GetUser", id, userModel)
 	if err != nil {
 		return c.JSON(http.StatusNoContent, err)
 	}
@@ -96,21 +95,34 @@ func UpdateUser(c echo.Context) error {
 	id, _ := primitive.ObjectIDFromHex(c.Param("id"))
 	utilities.PrintDebug("Update User ID", id)
 
-	//var u models.UserModel
-	var u models.UserModelTest
-
-	utilities.PrintDebug("ModelTest", u)
+	//var u models.UserModelTest
+	var u models.UserModel
 
 	if err := c.Bind(&u); err != nil {
 		return err
 	}
-	//id, _ := strconv.Atoi(c.Param("id"))
-	//id := c.Param("id")
 
 	model, err := models.GetUser(id)
-	//model.Password = u.Password
 
-	utilities.PrintDebug("ModelTest", u, err)
+	if err != nil {
+		utilities.PrintDebug("Error")
+		return c.JSON(http.StatusOK, "Not Found")
+	}
+
+	model.Password = u.Password
+
+	utilities.PrintDebug("ModelID:", model.GetID())
+
+	err = model.Update()
+
+	if err != nil {
+		return c.JSON(http.StatusOK, "Update User Error")
+	}
+
+	// Don't really need to do this just good for testing
+	model, _ = models.GetUser(id)
+
+	//utilities.PrintDebug("ModelTest", u, err)
 	return c.JSON(http.StatusOK, model)
 }
 

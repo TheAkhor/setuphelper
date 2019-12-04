@@ -11,10 +11,11 @@ type (
 
 	//ContactModel - Contact Struct
 	ContactModel struct {
-		ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-		ContactID string             `json:"contactID"`
-		Type      string             `json:"type"`
-		Active    bool               `json:"active"`
+		//ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+		ID        string `json:"_id,omitempty" bson:"_id,omitempty"`
+		ContactID string `json:"contactID"`
+		Type      string `json:"type"`
+		Active    bool   `json:"active"`
 		CreationTime
 
 		Name      string `json:"name"`
@@ -50,33 +51,26 @@ type (
 )
 
 var (
-	contacts           = map[int]*ContactModel{}
-	contactseq         = 1
 	contactTableConfig = &TableConfig{"contacts"}
 )
 
 // GetID - Return the unique ID
 //func (m *ContactModel) SetID(id string) {
 func (m *ContactModel) SetID(id primitive.ObjectID) {
-	m.ID = id
-
-	m.ContactID = id.Hex()
+	m.ID = id.String()
 }
 
 // GetID - Return the unique ID
 func (m *ContactModel) GetID() string {
-	return m.ContactID
+	utilities.PrintDebug("Contact Model GET ID", m.ID, m)
+
+	return m.ID
 }
 
 // Save - Check the incoming id to see if the model already exists
 // Update or create new based on this data.
 func (m *ContactModel) Save() error {
 	log.Print("COntact SAVE----")
-	if m.ContactID != "" {
-		m.ContactID = string(contactseq)
-		contactseq++
-	}
-	contacts[contactseq] = m
 
 	m.CreationTime.UpdateTimes()
 

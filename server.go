@@ -82,6 +82,27 @@ func GetClient() *mongo.Client {
 	return client
 }
 
+// type CustomBinder struct{}
+
+// func (cb *CustomBinder) Bind(i interface{}, c echo.Context) (err error) {
+// 	// You may use default binder
+// 	db := new(echo.DefaultBinder)
+// 	utilities.PrintDebug("Custom Binder")
+// 	if err = db.Bind(i, c); err != echo.ErrUnsupportedMediaType {
+// 		utilities.PrintDebug("Custom Binder Err", err, err.Error())
+// 		utilities.PrintDebug(err.Error())
+// 		utilities.PrintDebug(c)
+// 		fmt.Println(c)
+// 		return
+// 	}
+
+// 	utilities.PrintDebug("Custom Binder Fail", i)
+
+// 	// Define your custom implementation
+
+// 	return
+// }
+
 func main() {
 	//client := GetClient()
 	//utilities.DatabaseConnect()
@@ -96,6 +117,7 @@ func main() {
 	utilities.PrintDebug("Connected MongoDB! -main")
 
 	e := echo.New()
+	//e.Binder = &CustomBinder{}
 
 	// Recover middleware recovers from panics anywhere in the chain,
 	// prints a stack trach and send control to the HTTPErrorHandler
