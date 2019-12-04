@@ -45,7 +45,7 @@ func (controller *LoginController) Login(c echo.Context) error {
 
 	// Set custom claims
 	claims := &JwtCustomClaims{
-		"Jon Snow",
+		userModel.GetFullName,
 		true,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
