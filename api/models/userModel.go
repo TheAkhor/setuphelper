@@ -3,6 +3,7 @@ package models
 import (
 	"log"
 	"setuphelper/api/utilities"
+	"strings"
 
 	//"github.com/labstack/echo/middleware"
 
@@ -17,6 +18,8 @@ type (
 		//UserID       string         `json:"userID"`
 		UserName     string         `json:"userName"`
 		Password     string         `json:"password"`
+		FirstName    string         `json:"firstName"`
+		LastName     string         `json:"lastName"`
 		SecurityList []UserSecurity `json:"securityList"`
 		ContactID    string         `json:"contactID"`
 
@@ -67,17 +70,38 @@ func GetUserList() map[string]*UserModel {
 	return users
 }
 
+func (m *UserModel) GetID() string {
+	//id, _ := primitive.ObjectIDFromHex(m.ID)
+	return m.ID
+}
+
+func (m *UserModel) GetFullName() string {
+	return strings.Join([]string{m.FirstName, m.LastName}, " ")
+}
+
+func (m *UserModel) IsAllowedToLogin() bool {
+	//id, _ := primitive.ObjectIDFromHex(m.ID)
+	filter := bson.M{
+		"username": m.UserName,
+		"password": m.Password}
+
+	var model UserModel
+	err := utilities.DatabaseObj.FindOne(userTableConfig.Name, filter, &model)
+
+	if err != nil {
+		utilities.PrintDebug("User not found in DB", filter)
+		return false
+	}
+
+	return true
+}
+
 //func (m *UserModel) SetID(id string) {
 func (m *UserModel) SetID(id primitive.ObjectID) {
 	//m.ID = id.Hex()
 	m.ID = id.String()
 	//m.ID = id
 	//m.UserID = id.Hex()
-}
-
-func (m *UserModel) GetID() string {
-	//id, _ := primitive.ObjectIDFromHex(m.ID)
-	return m.ID
 }
 
 // SetContactID - Set the contact ID of the saved model
@@ -117,30 +141,4 @@ func (m *UserModel) Update() error {
 	utilities.PrintDebug("User Model Update", userModel)
 	//utilities.PrintDebug("RESULT bson", update)
 	return result.Err()
-}
-
-func (m *UserModel) UpdateTest() error {
-	filter := bson.M{"_id": m.GetID()}
-
-	//m.CreationTime.UpdateTimes()
-
-	//result := utilities.DatabaseObj.FindOneAndUpdate(userTableConfig.Name, filter, update)
-	result := utilities.DatabaseObj.FindOneAndReplace(userTableConfig.Name, filter, m)
-
-	if result.Err() != nil {
-		return result.Err()
-	}
-
-	model := &UserModel{}
-
-	utilities.PrintDebug("Decode", model)
-
-	if err := result.Decode(model); err != nil {
-		utilities.PrintDebug("Decode Issue", err.Error())
-
-	}
-
-	//result.Decode(m)
-
-	return nil
 }

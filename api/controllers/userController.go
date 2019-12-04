@@ -18,10 +18,8 @@ type (
 		User    models.UserModel    `json:user`
 		Contact models.ContactModel `json:"contact"`
 	}
-	Test struct {
-		UserName string `json:"userName"`
-		Password string `json:"password"`
-	}
+
+	UserController struct{}
 )
 
 //----------
@@ -29,7 +27,7 @@ type (
 //----------
 
 // CreateUser - Create a user
-func CreateUser(c echo.Context) error {
+func (controller *UserController) CreateUser(c echo.Context) error {
 	log.Print("Create User")
 
 	// Create a empty userModel we can use to Decode context into (bind function)
@@ -70,8 +68,7 @@ func CreateUser(c echo.Context) error {
 }
 
 // GetUser - Get a user
-func GetUser(c echo.Context) error {
-
+func (controller *UserController) GetUser(c echo.Context) error {
 	id, _ := primitive.ObjectIDFromHex(c.Param("id"))
 
 	userModel, err := models.GetUser(id)
@@ -85,13 +82,13 @@ func GetUser(c echo.Context) error {
 }
 
 // GetUserList - List all users
-func GetUserList(c echo.Context) error {
+func (controller *UserController) GetUserList(c echo.Context) error {
 	log.Print("GetUserList")
 	return c.JSON(http.StatusOK, models.GetUserList())
 }
 
 // UpdateUser - Update a user
-func UpdateUser(c echo.Context) error {
+func (controller *UserController) UpdateUser(c echo.Context) error {
 	id, _ := primitive.ObjectIDFromHex(c.Param("id"))
 	utilities.PrintDebug("Update User ID", id)
 
@@ -127,7 +124,7 @@ func UpdateUser(c echo.Context) error {
 }
 
 // DeleteUser - Remove a user
-func DeleteUser(c echo.Context) error {
+func (controller *UserController) DeleteUser(c echo.Context) error {
 	//id, _ := strconv.Atoi(c.Param("id"))
 	id := c.Param("id")
 	models.DeleteUser(id)

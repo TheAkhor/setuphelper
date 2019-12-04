@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 
 	"log"
 	"setuphelper/api/controllers"
+	"setuphelper/api/models"
 	"setuphelper/api/utilities"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,12 +26,18 @@ type jwtCustomClaims struct {
 }
 
 func login(c echo.Context) error {
-	fmt.Printf("%+v\n", c)
-	username := c.FormValue("username")
-	password := c.FormValue("password")
+
+	userModel := &models.UserModel{}
+
+	if err := c.Bind(userModel); err != nil {
+		log.Print("Login Bind Issue", err)
+		return c.JSON(http.StatusNoContent, err)
+	}
+
+	utilities.PrintDebug("JWT Login", userModel)
 
 	// Throws unauthorized error
-	if username != "jon" || password != "shhh!" {
+	if !userModel.IsAllowedToLogin() {
 		return echo.ErrUnauthorized
 	}
 
@@ -126,8 +132,10 @@ func main() {
 	// Logger middleware logs the information about each HTTP request
 	e.Use(middleware.Logger())
 
-	// Login route
-	e.POST("/login", login)
+	// Login route for JWT
+	//e.POST("/login", login)
+	loginController := controllers.LoginController{}
+	e.POST("/login", loginController.Login)
 
 	// Unauthenticated route
 	e.GET("/", accessible)
@@ -145,17 +153,25 @@ func main() {
 
 	// Configure middleware with the custom claims type
 	config := middleware.JWTConfig{
-		Claims:     &jwtCustomClaims{},
+		Claims:     &controllers.JwtCustomClaims{},
 		SigningKey: []byte("secret"),
 	}
 	r.Use(middleware.JWTWithConfig(config))
 	r.GET("", restricted)
 
-	e.POST("/users", controllers.CreateUser)
-	e.GET("/users", controllers.GetUserList)
-	e.GET("/users/:id", controllers.GetUser)
-	e.PUT("/users/:id", controllers.UpdateUser)
-	e.DELETE("/users/:id", controllers.DeleteUser)
+	userController := controllers.UserController{}
+	r.POST("/users", userController.CreateUser)
+	r.GET("/users", userController.GetUserList)
+	r.GET("/users/:id", userController.GetUser)
+	r.PUT("/users/:id", userController.UpdateUser)
+	r.DELETE("/users/:id", userController.DeleteUser)
+
+	//Remove these later - Just for easy postman testing
+	e.POST("/users", userController.CreateUser)
+	e.GET("/users", userController.GetUserList)
+	e.GET("/users/:id", userController.GetUser)
+	e.PUT("/users/:id", userController.UpdateUser)
+	e.DELETE("/users/:id", userController.DeleteUser)
 
 	e.Logger.Fatal(e.Start(":3001"))
 }

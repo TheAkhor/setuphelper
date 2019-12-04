@@ -114,10 +114,6 @@ func (d *Database) FindOne(collectionName string, filter bson.M, result interfac
 	// Try and find the result and decode into the model pointer variable passed
 	err := collection.FindOne(context.TODO(), filter).Decode(result)
 
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
-
 	PrintDebug("Database Find One: ", result, err)
 
 	return err
