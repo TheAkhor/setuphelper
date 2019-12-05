@@ -18,6 +18,14 @@ func accessible(c echo.Context) error {
 func main() {
 	//client := GetClient()
 	//utilities.DatabaseConnect()
+
+	// command := exec.Command("npm", "start", "--prefix ./ui/")
+	// command.Stdout = os.Stdout
+	// command.Stderr = os.Stderr
+	// if err := command.Run(); err != nil {
+	// 	log.Fatal(err)
+	// }
+
 	utilities.Init()
 	client := utilities.DatabaseObj.GetClient()
 
