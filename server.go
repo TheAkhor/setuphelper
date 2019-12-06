@@ -3,115 +3,29 @@ package main
 import (
 	"context"
 	"net/http"
-	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 
-	"log"
 	"setuphelper/api/controllers"
-	"setuphelper/api/models"
 	"setuphelper/api/utilities"
-
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-// jwtCustomClaims are custom claims extending default ones.
-type jwtCustomClaims struct {
-	Name  string `json:"name"`
-	Admin bool   `json:"admin"`
-	jwt.StandardClaims
-}
-
-func login(c echo.Context) error {
-
-	userModel := &models.UserModel{}
-
-	if err := c.Bind(userModel); err != nil {
-		log.Print("Login Bind Issue", err)
-		return c.JSON(http.StatusNoContent, err)
-	}
-
-	utilities.PrintDebug("JWT Login", userModel)
-
-	// Throws unauthorized error
-	if !userModel.IsAllowedToLogin() {
-		return echo.ErrUnauthorized
-	}
-
-	// Set custom claims
-	claims := &jwtCustomClaims{
-		"Jon Snow",
-		true,
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
-		},
-	}
-
-	// Create token with claims
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	// Generate encoded token and send it as response.
-	t, err := token.SignedString([]byte("secret"))
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, echo.Map{
-		"token": t,
-	})
-}
 
 func accessible(c echo.Context) error {
 	return c.String(http.StatusOK, "Accessible")
 }
 
-func restricted(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*jwtCustomClaims)
-	name := claims.Name
-	return c.String(http.StatusOK, "Welcome "+name+"!")
-}
-
-func GetClient() *mongo.Client {
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
-	client, err := mongo.NewClient(clientOptions)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = client.Connect(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
-	return client
-}
-
-// type CustomBinder struct{}
-
-// func (cb *CustomBinder) Bind(i interface{}, c echo.Context) (err error) {
-// 	// You may use default binder
-// 	db := new(echo.DefaultBinder)
-// 	utilities.PrintDebug("Custom Binder")
-// 	if err = db.Bind(i, c); err != echo.ErrUnsupportedMediaType {
-// 		utilities.PrintDebug("Custom Binder Err", err, err.Error())
-// 		utilities.PrintDebug(err.Error())
-// 		utilities.PrintDebug(c)
-// 		fmt.Println(c)
-// 		return
-// 	}
-
-// 	utilities.PrintDebug("Custom Binder Fail", i)
-
-// 	// Define your custom implementation
-
-// 	return
-// }
-
 func main() {
 	//client := GetClient()
 	//utilities.DatabaseConnect()
+
+	// command := exec.Command("npm", "start", "--prefix ./ui/")
+	// command.Stdout = os.Stdout
+	// command.Stderr = os.Stderr
+	// if err := command.Run(); err != nil {
+	// 	log.Fatal(err)
+	// }
+
 	utilities.Init()
 	client := utilities.DatabaseObj.GetClient()
 
@@ -157,7 +71,6 @@ func main() {
 		SigningKey: []byte("secret"),
 	}
 	r.Use(middleware.JWTWithConfig(config))
-	r.GET("", restricted)
 
 	userController := controllers.UserController{}
 	r.POST("/users", userController.CreateUser)

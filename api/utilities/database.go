@@ -13,6 +13,7 @@ import (
 )
 
 type (
+	//Database - components required to access the db
 	Database struct {
 		Client       *mongo.Client
 		Connected    bool
@@ -20,6 +21,7 @@ type (
 		//context
 	}
 
+	//DatabaseModel interface
 	DatabaseModel interface {
 		SetID(id primitive.ObjectID)
 		GetID() string
@@ -61,11 +63,8 @@ func (d *Database) GetCollection(collection string) *mongo.Collection {
 	return d.Client.Database(d.databaseName).Collection(collection)
 }
 
-// GetClient - Get teh mongo Client
+// GetClient - Get the mongo Client
 func (d *Database) GetClient() *mongo.Client {
-	// if !d.Connected {
-	// 	return nil
-	// }
 	return d.Client
 }
 
@@ -74,8 +73,7 @@ func (d *Database) SetDatabaseName(databaseName string) {
 	d.databaseName = databaseName
 }
 
-// SetDatabase - Set the database name to be used when getting collections
-//func (d *Database) Insert(collectionName string, model interface{}) {
+//Insert add a value to the collection
 func (d *Database) Insert(collectionName string, model DatabaseModel) error {
 	collection := d.GetCollection(collectionName)
 
@@ -90,24 +88,24 @@ func (d *Database) Insert(collectionName string, model DatabaseModel) error {
 	}
 
 	PrintDebug("Inserted a single document: ", insertResult.InsertedID, insertResult.InsertedID)
-	//model.SetID(insertResult.InsertedID)
-	//model.SetID(fmt.Sprintf("%v", insertResult.InsertedID))
-
-	//test := insertResult.InsertedID.(primitive.ObjectID)
-	//PrintDebug("Object ID TEST: ", collectionName, test.Hex())
-
-	// On the model "interface" we need to type assert the response
-	// This will send a primitive.ObjectID back to SetID.
-	//model.SetID(insertResult.InsertedID.(primitive.ObjectID))
-
-	//model.SetID(insertResult.InsertedID))
-	//return insertResult, err
 	return err
-	//return nil
+
+}
+
+// Find - find result via the filter
+func (d *Database) Find(collectionName string, filter bson.M) (*mongo.Cursor, error) {
+	collection := d.GetCollection(collectionName)
+
+	// Try and find the result and decode into the model pointer variable passed
+	//results, err := collection.Find(context.TODO(), filter)
+	results, err := collection.Find(context.TODO(), filter)
+
+	PrintDebug("Database Find: ", results)
+
+	return results, err
 }
 
 // FindOne - find one result via the filter
-// result is a pointer to the model we need to decode into
 func (d *Database) FindOne(collectionName string, filter bson.M, result interface{}) error {
 	collection := d.GetCollection(collectionName)
 
@@ -119,41 +117,34 @@ func (d *Database) FindOne(collectionName string, filter bson.M, result interfac
 	return err
 }
 
-// SetDatabase - Set the database name to be used when getting collections
-//func (d *Database) Insert(collectionName string, model interface{}) {
-func (d *Database) FindOneAndUpdate(collectionName string, filter bson.M, update interface{}) *mongo.SingleResult {
+//FindOneAndDelete find a filter option and remove it from the db
+func (d *Database) FindOneAndDelete(collectionName string, filter bson.M) *mongo.SingleResult {
 	collection := d.GetCollection(collectionName)
 
-	//model.CreationTime.UpdateTimes()
-	//SetTImes(model)
-	//id := model.GetID()
+	options := &options.FindOneAndDeleteOptions{}
+	result := collection.FindOneAndDelete(context.TODO(), filter, options)
+	return result
+}
+
+//FindOneAndUpdate find one result and update
+func (d *Database) FindOneAndUpdate(collectionName string, filter bson.M, update interface{}) *mongo.SingleResult {
+	collection := d.GetCollection(collectionName)
 
 	options := &options.FindOneAndUpdateOptions{}
 	options.SetUpsert(true)
 
 	result := collection.FindOneAndUpdate(context.TODO(), filter, update, options)
 
-	// options := &options.FindOneAndUpdateOptions{}
-	// options.SetUpsert(true)
-
-	// result := collection.FindOneAndUpdate(context.TODO(), filter, model, options)
-	//insertResult, err := collection.FindOneAndUpdate(context.TODO(), filter, model, options)
-
 	return result
 }
 
+//FindOneAndReplace find one result and replace
 func (d *Database) FindOneAndReplace(collectionName string, filter bson.M, update interface{}) *mongo.SingleResult {
 	collection := d.GetCollection(collectionName)
 
 	result := collection.FindOneAndReplace(context.TODO(), filter, update)
 
-	//PrintDebug(result, result.Err())
 	PrintDebug("ERROR", result.Err())
-	// options := &options.FindOneAndUpdateOptions{}
-	// options.SetUpsert(true)
-
-	// result := collection.FindOneAndUpdate(context.TODO(), filter, model, options)
-	//insertResult, err := collection.FindOneAndUpdate(context.TODO(), filter, model, options)
 
 	return result
 }

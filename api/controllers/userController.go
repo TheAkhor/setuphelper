@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -14,11 +13,13 @@ import (
 )
 
 type (
-	controllerModel struct {
+	// createUserRequestModel is used to accept the create user json
+	createUserRequestModel struct {
 		User    models.UserModel    `json:user`
 		Contact models.ContactModel `json:"contact"`
 	}
 
+	// UserController is used for CRUD operations
 	UserController struct{}
 )
 
@@ -31,16 +32,13 @@ func (controller *UserController) CreateUser(c echo.Context) error {
 	log.Print("Create User")
 
 	// Create a empty userModel we can use to Decode context into (bind function)
-	model := &controllerModel{}
+	model := &createUserRequestModel{}
 
 	//Decode the incoming data into the model
 	if err := c.Bind(model); err != nil {
 		log.Print("Bind Issue", err)
 		return c.JSON(http.StatusNoContent, err)
 	}
-
-	log.Print("user", fmt.Sprintf("%#v", model))
-	log.Print("contact", fmt.Sprintf("%#v", model.Contact))
 
 	// Save the Contact Model first so we can set the contactID in the user
 	if err := model.Contact.Save(); err != nil {
@@ -62,8 +60,6 @@ func (controller *UserController) CreateUser(c echo.Context) error {
 	utilities.PrintDebug("Create User Success")
 	utilities.PrintDebug(model)
 
-	// //users[u.ID] = u
-	// //seq++
 	return c.JSON(http.StatusCreated, model.User)
 }
 
@@ -125,8 +121,12 @@ func (controller *UserController) UpdateUser(c echo.Context) error {
 
 // DeleteUser - Remove a user
 func (controller *UserController) DeleteUser(c echo.Context) error {
-	//id, _ := strconv.Atoi(c.Param("id"))
-	id := c.Param("id")
-	models.DeleteUser(id)
+
+	id, _ := primitive.ObjectIDFromHex(c.Param("id"))
+
+	var model models.UserModel
+	model, _ = models.GetUser(id)
+	model.Delete()
+
 	return c.NoContent(http.StatusNoContent)
 }

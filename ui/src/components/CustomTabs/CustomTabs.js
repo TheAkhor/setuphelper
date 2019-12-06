@@ -13,7 +13,7 @@ import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";
 import CardHeader from "components/Card/CardHeader.js";
 
-import styles from "assets/jss/material-dashboard-react/components/customTabsStyle.js";
+import styles from "assets/jss/material-dashboard-pro-react/components/customTabsStyle.js";
 
 const useStyles = makeStyles(styles);
 
@@ -37,11 +37,8 @@ export default function CustomTabs(props) {
           onChange={handleChange}
           classes={{
             root: classes.tabsRoot,
-            indicator: classes.displayNone,
-            scrollButtons: classes.displayNone
+            indicator: classes.displayNone
           }}
-          variant="scrollable"
-          scrollButtons="auto"
         >
           {tabs.map((prop, key) => {
             var icon = {};

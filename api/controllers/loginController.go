@@ -15,9 +15,11 @@ import (
 )
 
 type (
+	//LoginController is used to create a JWT
 	LoginController struct {
 	}
 
+	//JWTCustomClaims
 	JwtCustomClaims struct {
 		Name  string `json:"name"`
 		Admin bool   `json:"admin"`
@@ -28,6 +30,8 @@ type (
 //----------
 // Handlers
 //----------
+
+//Login  - Used to return the JWT
 func (controller *LoginController) Login(c echo.Context) error {
 	userModel := &models.UserModel{}
 
@@ -45,7 +49,7 @@ func (controller *LoginController) Login(c echo.Context) error {
 
 	// Set custom claims
 	claims := &JwtCustomClaims{
-		userModel.GetFullName,
+		userModel.GetFullName(),
 		true,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),

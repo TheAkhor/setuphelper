@@ -8,17 +8,27 @@ import { makeStyles } from "@material-ui/core/styles";
 // @material-ui/icons
 // core components
 
-import styles from "assets/jss/material-dashboard-react/components/cardAvatarStyle.js";
+import styles from "assets/jss/material-dashboard-pro-react/components/cardAvatarStyle.js";
 
 const useStyles = makeStyles(styles);
 
 export default function CardAvatar(props) {
   const classes = useStyles();
-  const { children, className, plain, profile, ...rest } = props;
+  const {
+    children,
+    className,
+    plain,
+    profile,
+    testimonial,
+    testimonialFooter,
+    ...rest
+  } = props;
   const cardAvatarClasses = classNames({
     [classes.cardAvatar]: true,
     [classes.cardAvatarProfile]: profile,
     [classes.cardAvatarPlain]: plain,
+    [classes.cardAvatarTestimonial]: testimonial,
+    [classes.cardAvatarTestimonialFooter]: testimonialFooter,
     [className]: className !== undefined
   });
   return (
@@ -32,5 +42,7 @@ CardAvatar.propTypes = {
   children: PropTypes.node.isRequired,
   className: PropTypes.string,
   profile: PropTypes.bool,
-  plain: PropTypes.bool
+  plain: PropTypes.bool,
+  testimonial: PropTypes.bool,
+  testimonialFooter: PropTypes.bool
 };
